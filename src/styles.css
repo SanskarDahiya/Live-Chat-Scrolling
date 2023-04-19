@@ -1,0 +1,105 @@
+@keyframes cowmove {
+  from {
+    transform: translate(10px, 0px);
+  }
+  to {
+    transform: translate(0px, 2px);
+  }
+}
+.animate-lr {
+  animation: cowmove 250ms linear both infinite alternate;
+}
+
+.App {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  color: white;
+  background-color: black;
+  min-height: 90vh;
+  min-height: 90dvh;
+  font-family: sans-serif;
+  text-align: center;
+  display: flex;
+  flex-direction: row;
+  padding: 10px;
+  margin: 0;
+}
+
+.input-slider {
+  -webkit-appearance: none; /* Override default CSS styles */
+  appearance: none;
+  height: 2px; /* Specified height */
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 1; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: 0.2s; /* 0.2 seconds transition on hover */
+  transition: opacity 0.2s;
+}
+.input-slider:hover {
+  opacity: 1; /* Fully shown on mouse-over */
+}
+
+.input-slider:hover::-webkit-slider-thumb {
+  width: 15px; /* Set a specific slider handle width */
+  height: 15px; /* Slider handle height */
+}
+.input-slider::-webkit-slider-thumb {
+  -webkit-transition: 0.2s; /* 0.2 seconds transition on hover */
+  transition: height 0.2s, width 0.2s;
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  border-radius: 9999px;
+  width: 10px; /* Set a specific slider handle width */
+  height: 10px; /* Slider handle height */
+  background: white; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+}
+
+.parentScrollbar {
+  overflow: hidden scroll !important;
+}
+/* width */
+.parentScrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+.parentScrollbar::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey;
+  border-radius: 10px;
+}
+
+/* Handle */
+.parentScrollbar::-webkit-scrollbar-thumb {
+  background: white;
+  border-radius: 10px;
+}
+
+.flex {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+  border-bottom: 2px solid rgba(200, 0, 0, 0.7);
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+.main-content {
+  border: 1px solid black;
+  flex: 4;
+}
+.slide-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
