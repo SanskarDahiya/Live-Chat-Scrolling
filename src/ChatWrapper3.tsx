@@ -22,10 +22,10 @@ const useCountElement = (elem: any[], duration = 500) => {
 const ChatWrapper = ({ children }: any) => {
   const chatListRef = useRef<null | HTMLDivElement>(null);
   const bottomRef = useRef<null | HTMLDivElement>(null);
-  const isChatInView = useRef(true);
+  const isChatAutoScrollEnabled = useRef(true);
   const countDiff = useCountElement(children);
   // const isScrollInProgress = useRef(false);
-  // const coolDownScrollToNewMessage = useRef(false); //500ms delay for scrollToNewMessage() to run, so that the chat container hide/unhide transition works
+  const coolDownScrollToNewMessage = useRef(false); //500ms delay for scrollToNewMessage() to run, so that the chat container hide/unhide transition works
   // const ignoreFirstScrollToNewMessage = useRef(false); //used to ignore the first time when chat container is shown from hiding since coolDownScrollToNewMessage is not updated till then
   const [isRoomToScrollBottom, setIsRoomToScrollBottom] = useState(false);
 
@@ -52,42 +52,37 @@ const ChatWrapper = ({ children }: any) => {
   useEffect(() => {
     // const bottomElement = bottomRef.current;
     // if (!bottomElement) return;
+    let cool_down_timer: any;
     const cb = () => {
+      coolDownScrollToNewMessage.current = false;
+      cool_down_timer && clearTimeout(cool_down_timer);
       if (document.visibilityState === "visible") {
-        // handleScrollButton();
-        isChatInView.current = true;
+        scrollToNewMessage("smooth");
+        setIsRoomToScrollBottom(false);
+        coolDownScrollToNewMessage.current = true;
+        cool_down_timer = setTimeout(() => {
+          coolDownScrollToNewMessage.current = false;
+        }, 500);
+        isChatAutoScrollEnabled.current = true;
       } else {
-        isChatInView.current = false;
+        isChatAutoScrollEnabled.current = false;
       }
     };
-
     cb();
-    // const intersectionObserver = new IntersectionObserver((entries) => {
-    //   let [entry] = entries;
-    //   if (entry.isIntersecting) {
-    //     console.log(`${entry.target.id} is visible`);
-    //   }
-    // });
-    // // start observing
-    // intersectionObserver.observe(bottomElement);
-
     document.addEventListener("visibilitychange", cb);
     return () => {
-      // intersectionObserver.unobserve(bottomElement);
-      // intersectionObserver.disconnect();
+      coolDownScrollToNewMessage.current = false;
+      cool_down_timer && clearTimeout(cool_down_timer);
       document.removeEventListener("visibilitychange", cb);
-      isChatInView.current = true;
+      isChatAutoScrollEnabled.current = true;
     };
   }, []);
 
-  const scrollToNewMessage = () => {
+  const scrollToNewMessage = (behavior?: ScrollBehavior) => {
+    if (coolDownScrollToNewMessage.current) return;
     if (!chatListRef.current) return;
-    const {
-      scrollTop,
-      offsetHeight,
-      scrollHeight,
-      clientHeight
-    } = chatListRef.current;
+    const { scrollTop, offsetHeight, scrollHeight, clientHeight } =
+      chatListRef.current;
     const height__ = scrollHeight - offsetHeight; // this isn't perfect
     const offset__ = offsetHeight - clientHeight; // and does this fix it? seems to...
     const scrollMax = height__ + offset__;
@@ -102,62 +97,108 @@ const ChatWrapper = ({ children }: any) => {
     chatListRef.current.scroll({
       top: scrollMax,
       left: 0,
-      behavior: countDiff >= 5 ? "auto" : "smooth"
+      // behavior: "auto",
+      behavior: behavior || (countDiff >= 5 ? "auto" : "smooth")
     });
     // if (scrollHeight - scrollTop > 500) {
     //   isScrollInProgress.current = false;
     // }
     // if (isScrollInProgress.current) return;
     // isScrollInProgress.current = true;
-    // if (coolDownScrollToNewMessage.current) return;
+
     // // if (ignoreFirstScrollToNewMessage.current) {
     // //   ignoreFirstScrollToNewMessage.current = false;
     // //   return;
     // // }
     // handleScrollButton();
     // bottomRef.current?.scrollIntoView({
-    //   behavior: messagePer500ms.current < 0 ? "auto" : "smooth",
+    //   behavior: countDiff >= 5 ? "auto" : "smooth",
     //   block: "end",
-    //   inline: "end"
+    //   inline: "end",
     // });
   };
   // const throttleHandleScroll = useMemo(() => throttle(handleScroll, 300), []);
-  // useEffect(() => {
-  //   const chatList = chatListRef.current;
-  //   if (!chatList) return;
+  useEffect(() => {
+    const chatList = chatListRef.current;
+    if (!chatList) return;
+    let prevValue__: number | null = null;
+    const handleScroll = () => {
+      if (!chatListRef.current) return;
 
-  //   const handleScroll = () => {
-  //     if (!chatListRef.current) return;
-  //     const { scrollTop, offsetHeight, scrollHeight } = chatListRef.current;
-  //     console.log("{ scrollTop, offsetHeight, scrollHeight }", {
-  //       scrollTop,
-  //       offsetHeight,
-  //       scrollHeight
-  //     });
-  //     const isOnBottom =
-  //       Math.abs(scrollTop + offsetHeight - scrollHeight) >= 60;
-  //     // setIsRoomChatScrolledToTop(isOnBottom);
-  //   };
-  //   const throttleHandleScroll = throttle(handleScroll, 300);
+      const { scrollTop, offsetHeight, scrollHeight, clientHeight } =
+        chatListRef.current;
 
-  //   //   function pointerMove() {
-  //   //     const chatList = chatListRef.current;
-  //   //     if (!chatList) return;
-  //   chatList.addEventListener("scroll", throttleHandleScroll);
-  //   //   }
-  //   //   function pointerLeave() {
-  //   //     const chatList = chatListRef.current;
-  //   //     if (!chatList) return;
-  //   //     chatList.removeEventListener("scroll", throttleHandleScroll);
-  //   //   }
-  //   //   chatList.addEventListener("pointerenter", pointerMove);
-  //   //   chatList.addEventListener("pointerleave", pointerLeave);
-  //   return () => {
-  //     chatList.removeEventListener("scroll", throttleHandleScroll);
-  //     //     chatList.removeEventListener("pointerenter", pointerMove);
-  //     //     chatList.removeEventListener("pointerleave", pointerLeave);
-  //   };
-  // }, []);
+      const height__ = scrollHeight - offsetHeight; // this isn't perfect
+      const offset__ = offsetHeight - clientHeight; // and does this fix it? seems to...
+      const scrollMax = height__ + offset__;
+
+      prevValue__ = prevValue__ === null ? scrollTop : prevValue__;
+      const prevValue = prevValue__;
+      const currValue = scrollTop;
+      prevValue__ = currValue;
+      const IS_SCROLL_UP = currValue < prevValue; // - IS_SCROLL_DOWN
+
+      console.log("{ scrollTop, offsetHeight, scrollHeight }", {
+        cooldown: coolDownScrollToNewMessage.current,
+        IS_SCROLL_UP,
+        difff: Math.abs(currValue - prevValue),
+        currValue,
+        prevValue,
+        scrollTop,
+        scrollMax,
+        offsetHeight,
+        scrollHeight
+      });
+      if (coolDownScrollToNewMessage.current) return;
+      if (IS_SCROLL_UP) {
+        const IS_USER_SCROLLING_UP =
+          Math.abs(scrollMax - currValue) > 1 &&
+          Math.abs(currValue - prevValue) < 1000; // not scroll due to chat message lenght reduced
+        if (IS_USER_SCROLLING_UP) {
+          isChatAutoScrollEnabled.current = false;
+          setIsRoomToScrollBottom(true);
+        }
+      } else {
+        const IS_NEAR_TO_BOTTOM = Math.abs(scrollMax - currValue) <= 60;
+        isChatAutoScrollEnabled.current = true;
+        if (IS_NEAR_TO_BOTTOM) {
+          setIsRoomToScrollBottom(false);
+        }
+      }
+
+      // const isOnBottom =
+      //   Math.abs(scrollTop + offsetHeight - scrollHeight) >= 60;
+
+      // setIsRoomToScrollBottom(isOnBottom);
+    };
+    // const throttleHandleScroll = handleScroll;
+    const throttleHandleScroll = throttle(handleScroll, 50);
+    const pauseChatonClick = () => {
+      isChatAutoScrollEnabled.current = false;
+      setIsRoomToScrollBottom(true);
+    };
+    //   function pointerMove() {
+    //     const chatList = chatListRef.current;
+    //     if (!chatList) return;
+    chatList.addEventListener("scroll", throttleHandleScroll);
+    chatList.addEventListener("click", pauseChatonClick);
+    chatList.addEventListener("touchstart", pauseChatonClick);
+    //   }
+    //   function pointerLeave() {
+    //     const chatList = chatListRef.current;
+    //     if (!chatList) return;
+    //     chatList.removeEventListener("scroll", throttleHandleScroll);
+    //   }
+    //   chatList.addEventListener("pointerenter", pointerMove);
+    //   chatList.addEventListener("pointerleave", pointerLeave);
+    return () => {
+      chatList.removeEventListener("touchstart", pauseChatonClick);
+      chatList.removeEventListener("click", pauseChatonClick);
+      chatList.removeEventListener("scroll", throttleHandleScroll);
+      //     chatList.removeEventListener("pointerenter", pointerMove);
+      //     chatList.removeEventListener("pointerleave", pointerLeave);
+    };
+  }, []);
 
   // useEffect(() => {
   //   coolDownScrollToNewMessage.current = true;
@@ -169,9 +210,13 @@ const ChatWrapper = ({ children }: any) => {
   //     clearTimeout(cooldownTimer);
   //   };
   // }, []);
+  const previousChild = useRef(null);
 
   useEffect(() => {
-    if (isChatInView.current && !isRoomToScrollBottom) {
+    if (!isRoomToScrollBottom) {
+      previousChild.current = children;
+    }
+    if (isChatAutoScrollEnabled.current && !isRoomToScrollBottom) {
       scrollToNewMessage();
     }
   });
@@ -180,19 +225,15 @@ const ChatWrapper = ({ children }: any) => {
       className="parentScrollbar"
       ref={chatListRef}
       style={{
-        // verticalAlign: "bottom",
         flex: 1,
         width: "100%",
-        // display: "inline-flex",
-        // flexDirection: "column",
-        // justifyContent: "flex-end",
         position: "relative",
         maxHeight: "90vh",
         border: "1px solid white",
         minHeight: "20px"
       }}
     >
-      {children}
+      {previousChild.current || children}
       <div ref={bottomRef} />
       {isRoomToScrollBottom && (
         <button
@@ -206,7 +247,8 @@ const ChatWrapper = ({ children }: any) => {
             borderRadius: "20px"
           }}
           onClick={() => {
-            scrollToNewMessage();
+            setIsRoomToScrollBottom(false);
+            scrollToNewMessage("smooth");
           }}
         >
           click to move
