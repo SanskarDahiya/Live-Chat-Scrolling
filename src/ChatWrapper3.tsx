@@ -19,11 +19,14 @@ const useCountElement = (elem: any[], duration = 500) => {
 
   return diffCount;
 };
-const ChatWrapper = ({ children }: any) => {
+const ChatWrapper = ({ children, chatPerSec }: any) => {
   const chatListRef = useRef<null | HTMLDivElement>(null);
   const bottomRef = useRef<null | HTMLDivElement>(null);
   const isChatAutoScrollEnabled = useRef(true);
-  const countDiff = useCountElement(children);
+  const countDiffRef = useRef(0);
+  countDiffRef.current = +(chatPerSec / 4).toFixed(0);
+  // countDiffRef.current = useCountElement(children);
+  const countDiff = countDiffRef.current;
   // const isScrollInProgress = useRef(false);
   const coolDownScrollToNewMessage = useRef(false); //500ms delay for scrollToNewMessage() to run, so that the chat container hide/unhide transition works
   // const ignoreFirstScrollToNewMessage = useRef(false); //used to ignore the first time when chat container is shown from hiding since coolDownScrollToNewMessage is not updated till then
@@ -139,6 +142,7 @@ const ChatWrapper = ({ children }: any) => {
       const IS_SCROLL_UP = currValue < prevValue; // - IS_SCROLL_DOWN
 
       console.log("{ scrollTop, offsetHeight, scrollHeight }", {
+        countDiff: countDiffRef.current,
         cooldown: coolDownScrollToNewMessage.current,
         IS_SCROLL_UP,
         difff: Math.abs(currValue - prevValue),

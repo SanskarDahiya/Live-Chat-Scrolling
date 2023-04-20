@@ -5,7 +5,11 @@ import ChatWrapper2 from "./ChatWrapper2";
 import ChatWrapper3 from "./ChatWrapper3";
 import { USERNAMES, MESSAGES } from "./RANDOM";
 
-const LOGIC_TYPES = [1, 2, 3];
+const LOGICS = {
+  Curr: ChatWrapper,
+  Curr_With_Throttle: ChatWrapper2,
+  New: ChatWrapper3
+};
 
 const MessageUI = ({ message }: any) => {
   return (
@@ -137,9 +141,12 @@ const getRamdonMessage = ({ isSticker }: { isSticker: boolean }) => {
 };
 
 type IMessage = ReturnType<typeof getRamdonMessage>;
+type P = keyof typeof LOGICS;
 
 export default function App() {
-  const [currLogic, setCurrLogic] = useState(1);
+  const [currLogic, setCurrLogic] = useState<P>(
+    (Object.keys(LOGICS) as P[])[0]
+  );
   const [chatPerSec, setChatPerSec] = useState(10);
   const [stickerRandomness, setStickerRandomness] = useState(0.5);
   const [isMessageStart, setMessageStart] = useState(false);
@@ -188,11 +195,9 @@ export default function App() {
   useEffect(() => {
     setMessageStart(false);
   }, [currLogic]);
-  const WRAPPER =
-    (currLogic === 2 ? ChatWrapper2 : currLogic === 3 ? ChatWrapper3 : null) ||
-    ChatWrapper;
+  const WRAPPER = LOGICS[currLogic] || ChatWrapper;
   const CONTAINER_INFO = messages.length ? (
-    <WRAPPER>
+    <WRAPPER chatPerSec={chatPerSec}>
       {messages.map(({ id: msgId, data }, id) => {
         return <MessageUI message={data} key={msgId + id} />;
       })}
@@ -207,7 +212,8 @@ export default function App() {
           flex: 1,
           borderRight: "1px dashed black",
           height: "100%",
-          width: "100%"
+          width: "100%",
+          maxWidth: "30%"
         }}
       >
         <div className="slide-menu">
@@ -251,24 +257,44 @@ export default function App() {
               />
             </div>
           </div>
-          <div className="flex">
-            Code Logic: {currLogic === 1 ? "Current" : currLogic}
+          <div
+            className="flex"
+            style={{
+              justifyContent: "center",
+              alignItems: "center"
+            }}
+          >
+            Code Logic: <br />
+            {currLogic}
             <div
               className="flex-row"
               style={{
                 minWidth: "100%",
-                flex: 1
+                flex: 1,
+                display: "flex",
+                flexWrap: "wrap",
+                padding: "0 0 0 10px"
               }}
             >
-              {LOGIC_TYPES.map((item) => {
+              {(Object.keys(LOGICS) as P[]).map((item) => {
                 return (
-                  <React.Fragment key={item}>
+                  <div
+                    key={item}
+                    style={{
+                      display: "flex",
+                      width: "100%",
+                      padding: "4px 0 4px 10px"
+                    }}
+                  >
                     <span
                       style={{
-                        margin: "0 8px"
+                        textAlign: "start",
+                        // minWidth: "70%"
+                        flex: 1
                       }}
-                    />
-                    {item}
+                    >
+                      {item}
+                    </span>
                     <input
                       name="gg"
                       type="radio"
@@ -278,7 +304,7 @@ export default function App() {
                         setCurrLogic(item);
                       }}
                     />
-                  </React.Fragment>
+                  </div>
                 );
               })}
             </div>
@@ -314,8 +340,8 @@ export default function App() {
               RESET
             </button>
           </div>
-          <h1>Hello CodeSandbox</h1>
           Total Messages: {messages.length}
+          <h1>Hello CodeSandbox</h1>
         </div>
       </div>
       <div className="main-content">{CONTAINER_INFO}</div>
