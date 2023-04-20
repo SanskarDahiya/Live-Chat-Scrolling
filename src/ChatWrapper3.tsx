@@ -82,43 +82,44 @@ const ChatWrapper = ({ children, chatPerSec }: any) => {
   }, []);
 
   const scrollToNewMessage = (behavior?: ScrollBehavior) => {
-    if (coolDownScrollToNewMessage.current) return;
-    if (!chatListRef.current) return;
-    const { scrollTop, offsetHeight, scrollHeight, clientHeight } =
-      chatListRef.current;
-    const height__ = scrollHeight - offsetHeight; // this isn't perfect
-    const offset__ = offsetHeight - clientHeight; // and does this fix it? seems to...
-    const scrollMax = height__ + offset__;
-    // console.log("scrollToNewMessage-1", {
-    //   diff: scrollMax - scrollTop,
-    //   countDiff,
-    //   scrollMax,
-    //   scrollTop,
-    //   offsetHeight,
-    //   scrollHeight
-    // });
-    chatListRef.current.scroll({
-      top: scrollMax,
-      left: 0,
-      // behavior: "auto",
-      behavior: behavior || (countDiff >= 5 ? "auto" : "smooth")
-    });
-    // if (scrollHeight - scrollTop > 500) {
-    //   isScrollInProgress.current = false;
-    // }
-    // if (isScrollInProgress.current) return;
-    // isScrollInProgress.current = true;
+    window.requestAnimationFrame(() => {
+      if (coolDownScrollToNewMessage.current) return;
+      if (!chatListRef.current) return;
+      const { scrollTop, offsetHeight, scrollHeight, clientHeight } =
+        chatListRef.current;
+      const height__ = scrollHeight - offsetHeight; // this isn't perfect
+      const offset__ = offsetHeight - clientHeight; // and does this fix it? seems to...
+      const scrollMax = height__ + offset__;
+      // console.log("scrollToNewMessage-1", {
+      //   diff: scrollMax - scrollTop,
+      //   countDiff,
+      //   scrollMax,
+      //   scrollTop,
+      //   offsetHeight,
+      //   scrollHeight
+      // });
+      chatListRef.current.scroll({
+        top: scrollMax,
+        left: 0,
+        // behavior: "auto",
+        behavior: behavior || (countDiff >= 5 ? "auto" : "smooth")
+      });
+      // if (scrollHeight - scrollTop > 500) {
+      //   isScrollInProgress.current = false;
+      // }
+      // if (isScrollInProgress.current) return;
+      // isScrollInProgress.current = true;
 
-    // // if (ignoreFirstScrollToNewMessage.current) {
-    // //   ignoreFirstScrollToNewMessage.current = false;
-    // //   return;
-    // // }
-    // handleScrollButton();
-    // bottomRef.current?.scrollIntoView({
-    //   behavior: countDiff >= 5 ? "auto" : "smooth",
-    //   block: "end",
-    //   inline: "end",
-    // });
+      // // if (ignoreFirstScrollToNewMessage.current) {
+      // //   ignoreFirstScrollToNewMessage.current = false;
+      // //   return;
+      // // }
+      // handleScrollButton();
+      // bottomRef.current?.scrollIntoView({
+      //   behavior: countDiff >= 5 ? "auto" : "smooth",
+      //   block: "end",
+      //   inline: "end",
+    });
   };
   // const throttleHandleScroll = useMemo(() => throttle(handleScroll, 300), []);
   useEffect(() => {
@@ -141,18 +142,18 @@ const ChatWrapper = ({ children, chatPerSec }: any) => {
       prevValue__ = currValue;
       const IS_SCROLL_UP = currValue < prevValue; // - IS_SCROLL_DOWN
 
-      console.log("{ scrollTop, offsetHeight, scrollHeight }", {
-        countDiff: countDiffRef.current,
-        cooldown: coolDownScrollToNewMessage.current,
-        IS_SCROLL_UP,
-        difff: Math.abs(currValue - prevValue),
-        currValue,
-        prevValue,
-        scrollTop,
-        scrollMax,
-        offsetHeight,
-        scrollHeight
-      });
+      // console.log("{ scrollTop, offsetHeight, scrollHeight }", {
+      //   countDiff: countDiffRef.current,
+      //   cooldown: coolDownScrollToNewMessage.current,
+      //   IS_SCROLL_UP,
+      //   difff: Math.abs(currValue - prevValue),
+      //   currValue,
+      //   prevValue,
+      //   scrollTop,
+      //   scrollMax,
+      //   offsetHeight,
+      //   scrollHeight
+      // });
       if (coolDownScrollToNewMessage.current) return;
       if (IS_SCROLL_UP) {
         const IS_USER_SCROLLING_UP =

@@ -7,7 +7,7 @@ import { USERNAMES, MESSAGES } from "./RANDOM";
 
 const LOGICS = {
   Curr: ChatWrapper,
-  Curr_With_Throttle: ChatWrapper2,
+  // Curr_With_Throttle: ChatWrapper2,
   New: ChatWrapper3
 };
 
